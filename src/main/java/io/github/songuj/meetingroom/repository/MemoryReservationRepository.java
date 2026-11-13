@@ -47,6 +47,7 @@ public class MemoryReservationRepository implements ReservationRepository{
         map.remove(id);
     }
 
+    // 회의실 예약 겹치면 true
     @Override 
     public boolean existsOverlap(String room, LocalDateTime start, LocalDateTime end) {
         return map.values().stream()

@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 import io.github.songuj.meetingroom.entity.Reservation;
 import io.github.songuj.meetingroom.repository.ReservationRepository;
 
-public class ReservationServiceTest {
+class ReservationServiceTest {
     // 테스트에 쓸 시각 3개 (05와 같은 방식)
     LocalDateTime ten    = LocalDateTime.of(2026, 11, 13, 10, 0);
     LocalDateTime eleven = LocalDateTime.of(2026, 11, 13, 11, 0);

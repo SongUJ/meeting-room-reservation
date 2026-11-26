@@ -1,5 +1,7 @@
 package io.github.songuj.meetingroom.controller;
 
+import static io.github.songuj.meetingroom.TestFixtures.reservation;
+import static io.github.songuj.meetingroom.TestFixtures.room;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -25,6 +27,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import io.github.songuj.meetingroom.entity.Reservation;
+import io.github.songuj.meetingroom.entity.Room;
 import io.github.songuj.meetingroom.service.ReservationService;
 
 @WebMvcTest(ReservationController.class)
@@ -37,17 +40,17 @@ class ReservationControllerTest {
     ReservationService reservationService;
 
     String body = """
-            {"room":"A회의실","reservedBy":"홍길동","start":"2026-11-13T10:00:00","end":"2026-11-13T11:00:00"}
+            {"roomId":1,"reservedBy":"홍길동","start":"2026-11-13T10:00:00","end":"2026-11-13T11:00:00"}
             """;
 
-    // room만 빈 문자열, 나머지 3개는 정상
-    String emptyRoomBody = """
-            {"room":"","reservedBy":"홍길동","start":"2026-11-13T10:00:00","end":"2026-11-13T11:00:00"}
+    // roomId만 빠짐(null), 나머지 3개는 정상
+    String noRoomIdBody = """
+            {"reservedBy":"홍길동","start":"2026-11-13T10:00:00","end":"2026-11-13T11:00:00"}
             """;
 
     // 종료(10:00)가 시작(11:00)보다 앞 - 형식은 정상이라 @Valid는 통과한다
     String reversedTimeBody = """
-            {"room":"A회의실","reservedBy":"홍길동","start":"2026-11-13T11:00:00","end":"2026-11-13T10:00:00"}
+            {"roomId":1,"reservedBy":"홍길동","start":"2026-11-13T11:00:00","end":"2026-11-13T10:00:00"}
             """;
 
     @Test
@@ -55,9 +58,10 @@ class ReservationControllerTest {
         // given
         LocalDateTime start = LocalDateTime.of(2026, 11, 13, 10, 0);
         LocalDateTime end = LocalDateTime.of(2026, 11, 13, 11, 0);
-        Reservation saved = new Reservation(1L, "A회의실", "홍길동", start, end);
+        Room room = room(1L, "A회의실");
+        Reservation saved = reservation(1L, room, "홍길동", start, end);
 
-        when(reservationService.reserve("A회의실", "홍길동", start, end)).thenReturn(saved);
+        when(reservationService.reserve(1L, "홍길동", start, end)).thenReturn(saved);
 
         // when + then
         mockMvc.perform(post("/reservations")
@@ -71,16 +75,16 @@ class ReservationControllerTest {
     }
 
     @Test
-    void 회의실_이름이_비면_400이고_서비스를_부르지_않는다() throws Exception {
+    void 회의실_id가_없으면_400이고_서비스를_부르지_않는다() throws Exception {
         // given 없음 - 서비스가 불릴 일이 없다
 
         // when + then
         mockMvc.perform(post("/reservations")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(emptyRoomBody))
+                        .content(noRoomIdBody))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("room 값이 비어 있습니다."));
+                .andExpect(jsonPath("$.message").value("roomId 값이 비어 있습니다."));
 
         // then - 잘못된 요청은 서비스까지 내려가지 않는다
         verify(reservationService, never()).reserve(any(), any(), any(), any());
@@ -92,7 +96,7 @@ class ReservationControllerTest {
         LocalDateTime start = LocalDateTime.of(2026, 11, 13, 11, 0);   // 시작 11시
         LocalDateTime end   = LocalDateTime.of(2026, 11, 13, 10, 0);   // 종료 10시 (시작보다 앞 = 거꾸로)
 
-        when(reservationService.reserve("A회의실", "홍길동", start, end))
+        when(reservationService.reserve(1L, "홍길동", start, end))
                 .thenThrow(new IllegalArgumentException("종료 시각이 시작 시각보다 뒤여야 합니다."));
 
         // when + then
@@ -110,7 +114,7 @@ class ReservationControllerTest {
         LocalDateTime start = LocalDateTime.of(2026, 11, 13, 10, 0);
         LocalDateTime end = LocalDateTime.of(2026, 11, 13, 11, 0);
 
-        when(reservationService.reserve("A회의실", "홍길동", start, end))
+        when(reservationService.reserve(1L, "홍길동", start, end))
                 .thenThrow(new IllegalStateException("이미 예약된 회의실 입니다."));
 
         // when + then

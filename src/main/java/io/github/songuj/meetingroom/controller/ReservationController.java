@@ -41,10 +41,10 @@ public class ReservationController {
     @PostMapping 
     public ResponseEntity<ReservationResDTO> reserve(@Valid @RequestBody ReservationReqDTO reservationReqDTO) {
         // 1. request의 값 4개로 서비스 reserve 호출
-        Reservation saved = reservationService.reserve(reservationReqDTO.room(), reservationReqDTO.reservedBy(), reservationReqDTO.start(), reservationReqDTO.end());
+        Reservation saved = reservationService.reserve(reservationReqDTO.roomId(), reservationReqDTO.reservedBy(), reservationReqDTO.start(), reservationReqDTO.end());
 
         // 2. return ResponseEntity.created(URI.create("/reservations/" + 번호)).body(응답 DTO);
-        return ResponseEntity.created(URI.create("/reservations/" + saved.id())).body(ReservationResDTO.from(saved));
+        return ResponseEntity.created(URI.create("/reservations/" + saved.getId())).body(ReservationResDTO.from(saved));
     }
 
     @GetMapping("/{id}")

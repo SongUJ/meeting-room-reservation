@@ -10,8 +10,9 @@ public record ReservationResDTO(
     String reservedBy,
     LocalDateTime start,
     LocalDateTime end) {
-    
+
+    // ⚠️ getRoom().getName(): room은 LAZY라서 여기서 회의실 SELECT가 나간다 → 목록에서는 N+1의 씨앗
     public static ReservationResDTO from(Reservation reservation) {
-        return new ReservationResDTO(reservation.id(), reservation.room(), reservation.reservedBy(), reservation.start(), reservation.end());
+        return new ReservationResDTO(reservation.getId(), reservation.getRoom().getName(), reservation.getReservedBy(), reservation.getStartAt(), reservation.getEndAt());
     }
 }

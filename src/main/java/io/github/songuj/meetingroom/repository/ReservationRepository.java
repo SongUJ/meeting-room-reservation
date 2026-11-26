@@ -15,5 +15,5 @@ public interface ReservationRepository {
 
     void deleteById(Long id);
 
-    boolean existsOverlap(String room, LocalDateTime start, LocalDateTime end);
+    boolean existsOverlap(Long roomId, LocalDateTime start, LocalDateTime end);
 }
